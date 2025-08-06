@@ -9,7 +9,7 @@ function getKuCoinData() {
     }),
   };
 
-  const response = UrlFetchApp.fetch(url, options);
+  const response = UrlFetchApp.fetch(https://kucoin-proxy-xxxxx.onrender.com/kucoin, options);
   const data = JSON.parse(response.getContentText());
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
