@@ -8,58 +8,29 @@ app.use(express.json());
 
 app.post('/kucoin', async (req, res) => {
   try {
-    const kucoinUrl = 'https://api.kucoin.com' + req.body.endpoint;
+    const { endpoint, method, data } = req.body;
 
-    if (!req.body.endpoint) {
-      return res.status(400).json({ error: 'Missing required field: endpoint' });
-    }
-
-    // Log de environment-variabelen (alleen tijdelijk!)
-    console.log('[DEBUG] Loaded env vars:', {
-      KUCOIN_API_KEY: process.env.KUCOIN_API_KEY ? '[OK]' : '[MISSING]',
-      KUCOIN_API_SECRET: process.env.KUCOIN_API_SECRET ? '[OK]' : '[MISSING]',
-      KUCOIN_API_PASSPHRASE: process.env.KUCOIN_API_PASSPHRASE ? '[OK]' : '[MISSING]',
+    const kucoinResponse = await axios({
+      method: method,
+      url: `https://api.kucoin.com${endpoint}`,
+      headers: {
+        'KC-API-KEY': process.env.KUCOIN_API_KEY,
+        'KC-API-SECRET': process.env.KUCOIN_API_SECRET,
+        'KC-API-PASSPHRASE': process.env.KUCOIN_API_PASSPHRASE,
+        'KC-API-SIGN': 'hier komt de signature (of placeholder)',
+        'KC-API-TIMESTAMP': Date.now().toString(),
+        'KC-API-KEY-VERSION': '2'
+      },
+      data: data
     });
 
-    const headers = {
-      'KC-API-KEY': process.env.KUCOIN_API_KEY,
-      'KC-API-SECRET': process.env.KUCOIN_API_SECRET,
-      'KC-API-PASSPHRASE': process.env.KUCOIN_API_PASSPHRASE,
-      'KC-API-KEY-VERSION': '2',
-      'Content-Type': 'application/json',
-    };
-
-    const axiosOptions = {
-      method: req.body.method || 'GET',
-      url: kucoinUrl,
-      headers,
-    };
-
-    if (req.body.data && req.body.method !== 'GET') {
-      axiosOptions.data = req.body.data;
-    }
-
-    const kucoinRes = await axios(axiosOptions);
-
-    // Debug log van KuCoin response
-    console.log('[DEBUG] KuCoin response:', kucoinRes.data);
-
-    res.json(kucoinRes.data);
+    res.json(kucoinResponse.data);
   } catch (err) {
-    console.error('[ERROR] KuCoin proxy error:', {
-      message: err.message,
-      response: err.response?.data,
-      status: err.response?.status,
-    });
-
-    res.status(500).json({
-      error: 'Proxy error',
-      detail: err.message,
-      kucoin: err.response?.data || null,
-    });
+    console.error('[ERROR]', err.message);
+    res.status(500).json({ error: err.message });
   }
 });
 
 app.listen(port, () => {
-  console.log(`KuCoin proxy is running on port ${port}`);
+  console.log(`✅ KuCoin proxy live on port ${port}`);
 });
