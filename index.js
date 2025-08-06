@@ -14,6 +14,13 @@ app.post('/kucoin', async (req, res) => {
       return res.status(400).json({ error: 'Missing required field: endpoint' });
     }
 
+    // Log de environment-variabelen (alleen tijdelijk!)
+    console.log('[DEBUG] Loaded env vars:', {
+      KUCOIN_API_KEY: process.env.KUCOIN_API_KEY ? '[OK]' : '[MISSING]',
+      KUCOIN_API_SECRET: process.env.KUCOIN_API_SECRET ? '[OK]' : '[MISSING]',
+      KUCOIN_API_PASSPHRASE: process.env.KUCOIN_API_PASSPHRASE ? '[OK]' : '[MISSING]',
+    });
+
     const headers = {
       'KC-API-KEY': process.env.KUCOIN_API_KEY,
       'KC-API-SECRET': process.env.KUCOIN_API_SECRET,
@@ -33,12 +40,26 @@ app.post('/kucoin', async (req, res) => {
     }
 
     const kucoinRes = await axios(axiosOptions);
+
+    // Debug log van KuCoin response
+    console.log('[DEBUG] KuCoin response:', kucoinRes.data);
+
     res.json(kucoinRes.data);
   } catch (err) {
-    res.status(500).json({ error: err.toString() });
+    console.error('[ERROR] KuCoin proxy error:', {
+      message: err.message,
+      response: err.response?.data,
+      status: err.response?.status,
+    });
+
+    res.status(500).json({
+      error: 'Proxy error',
+      detail: err.message,
+      kucoin: err.response?.data || null,
+    });
   }
 });
 
 app.listen(port, () => {
-  console.log(`Proxy listening on port ${port}`);
+  console.log(`KuCoin proxy is running on port ${port}`);
 });
