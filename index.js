@@ -23,7 +23,9 @@ app.post('/kucoin', async (req, res) => {
   url: kucoinUrl,
   headers,
 };
-
+if (!req.body.endpoint) {
+  return res.status(400).json({ error: 'Missing required field: endpoint' });
+}
 // Alleen 'data' meesturen bij POST/PUT/etc.
 if (req.body.data && req.body.method !== 'GET') {
   axiosOptions.data = req.body.data;
