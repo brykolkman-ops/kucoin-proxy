@@ -1,26 +1,36 @@
-function getKuCoinData() {
-  const url = "https://kucoin-proxy-efyy.onrender.com/kucoin";
-  const options = {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify({
-      endpoint: "/api/v1/accounts",
-      method: "GET"
-    }),
-    muteHttpExceptions: true
-  };
+const express = require('express');
+const axios = require('axios');
+require('dotenv').config();
 
-  const response = UrlFetchApp.fetch(https://kucoin-proxy-efyy.onrender.com, options);
-  const data = JSON.parse(response.getContentText());
+const app = express();
+const port = process.env.PORT || 3000;
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  sheet.clear(); // oude data wissen
-  sheet.getRange(1, 1).setValue("Type – Coin – Balance");
+app.use(express.json());
 
-  let row = 2;
-  for (let i = 0; i < data.data.length; i++) {
-    const acc = data.data[i];
-    sheet.getRange(row, 1).setValue(`${acc.type} – ${acc.currency} – ${acc.balance}`);
-    row++;
+app.post('/kucoin', async (req, res) => {
+  try {
+    const kucoinUrl = 'https://api.kucoin.com' + req.body.endpoint;
+    const headers = {
+      'KC-API-KEY': process.env.KUCOIN_API_KEY,
+      'KC-API-SECRET': process.env.KUCOIN_API_SECRET,
+      'KC-API-PASSPHRASE': process.env.KUCOIN_API_PASSPHRASE,
+      'KC-API-KEY-VERSION': '2',
+      'Content-Type': 'application/json',
+    };
+
+    const kucoinRes = await axios({
+      method: req.body.method || 'GET',
+      url: kucoinUrl,
+      headers,
+      data: req.body.data || {},
+    });
+
+    res.json(kucoinRes.data);
+  } catch (err) {
+    res.status(500).json({ error: err.toString() });
   }
-}
+});
+
+app.listen(port, () => {
+  console.log(`Proxy listening on port ${port}`);
+});
