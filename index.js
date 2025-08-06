@@ -10,7 +10,7 @@ function getKuCoinData() {
     muteHttpExceptions: true
   };
 
-  const response = UrlFetchApp.fetch(url, options);
+  const response = UrlFetchApp.fetch(https://kucoin-proxy-efyy.onrender.com, options);
   const data = JSON.parse(response.getContentText());
 
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
