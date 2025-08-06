@@ -18,12 +18,18 @@ app.post('/kucoin', async (req, res) => {
       'Content-Type': 'application/json',
     };
 
-    const kucoinRes = await axios({
-      method: req.body.method || 'GET',
-      url: kucoinUrl,
-      headers,
-      data: req.body.data || {},
-    });
+    const axiosOptions = {
+  method: req.body.method || 'GET',
+  url: kucoinUrl,
+  headers,
+};
+
+// Alleen 'data' meesturen bij POST/PUT/etc.
+if (req.body.data && req.body.method !== 'GET') {
+  axiosOptions.data = req.body.data;
+}
+
+const kucoinRes = await axios(axiosOptions);
 
     res.json(kucoinRes.data);
   } catch (err) {
